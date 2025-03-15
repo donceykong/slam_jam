@@ -1,7 +1,7 @@
 import numpy as np
 import matplotlib.pyplot as plt
 
-def gauss_newton(f, J, x0, y, tol=1e-6, max_iter=1):
+def gauss_newton(f, J, x0, y, tol=1e-100, max_iter=100000):
     """
     Gauss-Newton optimization method.
     
@@ -23,6 +23,7 @@ def gauss_newton(f, J, x0, y, tol=1e-6, max_iter=1):
         
         # Solve the normal equations J.T * J * delta_x = -J.T * r
         delta_x, _, _, _ = np.linalg.lstsq(Jx, -r, rcond=None)
+        print(f"delta_x: {delta_x}")
         x += delta_x  # Update x
         
         # Check convergence
@@ -35,17 +36,28 @@ def gauss_newton(f, J, x0, y, tol=1e-6, max_iter=1):
 
 # Example usage: General polynomial fitting with Gauss-Newton
 def example():
-    # Generate synthetic data from a polynomial with noise
-    np.random.seed(42)
+    # Generate true samples from actual equation
     x_data = np.linspace(-5, 5, 50)
     true_params = np.array([2.0, -3.0, 1.0, 0.5])  # True coefficients for y = 2x^3 - 3x^2 + 1x + 0.5
     y_true = sum(true_params[i] * x_data**i for i in range(len(true_params)))
-    y_noisy = y_true + np.random.normal(scale=2.0, size=y_true.shape)  # Add Gaussian noise
-    
+
+    # Generate noisy samples from function
+    np.random.seed(42)
+    y_noisy = y_true + np.random.normal(scale=10.0, size=y_true.shape)  # Add Gaussian noise
     degree = len(true_params) - 1  # Adjust polynomial degree automatically
     
-    # Residual function: Difference between model and observed data
+    # Plot results
+    plt.scatter(x_data, y_noisy, label="Noisy Data", color='red')
+    plt.plot(x_data, y_true, label="True Curve", linestyle="dashed")
+    plt.legend()
+    plt.xlabel("x")
+    plt.ylabel("y")
+    plt.title("General Polynomial Fitting with Gauss-Newton Method")
+    plt.show()
+
+    # Residual function: Returns difference between model and observed data
     def f(params):
+        print(f"params: {params}")
         return sum(params[i] * x_data**i for i in range(len(params)))
     
     # Jacobian function
@@ -63,7 +75,7 @@ def example():
     # Plot results
     plt.scatter(x_data, y_noisy, label="Noisy Data", color='red')
     plt.plot(x_data, y_true, label="True Curve", linestyle="dashed")
-    plt.plot(x_data, f(result), label="Fitted Curve", color='blue')
+    plt.plot(x_data, f(result), label="Fitted Curve", color='green')
     plt.legend()
     plt.xlabel("x")
     plt.ylabel("y")
